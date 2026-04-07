@@ -1,22 +1,30 @@
-import json
 import os
+import json
+import subprocess
+from config import VIDEO_TEMP, HISTORY_DB, MAX_DURATION
 
-DB_PATH = "media/history.json"
-
-def ya_enviado(video_id):
-    if not os.path.exists(DB_PATH):
-        return False
-    with open(DB_PATH, "r") as f:
-        history = json.load(f)
-    return video_id in history
-
-def registrar_envio(video_id):
-    history = []
-    if os.path.exists(DB_PATH):
-        with open(DB_PATH, "r") as f:
+def es_nuevo(video_id):
+    if not os.path.exists(HISTORY_DB): return True
+    with open(HISTORY_DB, "r") as f:
+        try:
             history = json.load(f)
-    
+            return video_id not in history
+        except: return True
+
+def registrar_video(video_id):
+    history = []
+    if os.path.exists(HISTORY_DB):
+        with open(HISTORY_DB, "r") as f:
+            try: history = json.load(f)
+            except: pass
     history.append(video_id)
-    # Mantenemos solo los últimos 500 registros para no pesar
-    with open(DB_PATH, "w") as f:
+    with open(HISTORY_DB, "w") as f:
         json.dump(history[-500:], f)
+
+def procesar_video(path):
+    if not os.path.exists(VIDEO_TEMP): os.makedirs(VIDEO_TEMP)
+    output = path.replace(".mp4", "_pro.mp4")
+    # Recorte ultra rápido con FFmpeg
+    cmd = f'ffmpeg -i "{path}" -t {MAX_DURATION} -c copy "{output}" -y -loglevel quiet'
+    os.system(cmd)
+    return output
