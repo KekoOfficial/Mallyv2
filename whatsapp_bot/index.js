@@ -10,11 +10,10 @@ const pino = require('pino')
 const { Boom } = require('@hapi/boom')
 const fs = require('fs')
 
-// ⚙️ Traemos el número desde el entorno o lo fijamos
+// ⚙️ NÚMERO DE VINCULACIÓN (Asegúrate que sea el tuyo)
 const MI_NUMERO = "595986114722" 
 
 async function startImperio() {
-    // Definimos la ruta de autenticación
     const authPath = './auth'
     const { state, saveCreds } = await useMultiFileAuthState(authPath)
     const { version } = await fetchLatestBaileysVersion()
@@ -24,24 +23,19 @@ async function startImperio() {
         auth: state,
         logger: pino({ level: 'silent' }),
         printQRInTerminal: false,
-        // 🖥️ Emulación de Navegador Real (Evita el bloqueo de WhatsApp)
-        browser: Browsers.ubuntu('Chrome'), 
-        syncFullHistory: false,
-        markOnlineOnConnect: true
+        browser: Browsers.ubuntu('Chrome'), // Emulación profesional
+        syncFullHistory: false
     })
 
-    // --- 🛠️ MODO VINCULACIÓN INTELIGENTE ---
+    // --- 🛠️ PROTOCOLO DE VINCULACIÓN ---
     if (!sock.authState.creds.registered) {
-        console.log("⏳ Iniciando protocolo de vinculación...")
-        await delay(5000) // Espera de seguridad para evitar spam
-        
+        console.log("⏳ Generando código de vinculación...")
+        await delay(5000)
         try {
-            // Solicitamos el código de emparejamiento
             let code = await sock.requestPairingCode(MI_NUMERO)
-            // Formato exacto que lee tu main.py
             console.log(`TU CÓDIGO DE VINCULACIÓN ES: ${code}`)
         } catch (err) {
-            console.log("❌ ERROR_GENERANDO_CODIGO: Reintenta en un momento.")
+            console.log("❌ ERROR_GENERANDO_CODIGO")
         }
     }
 
@@ -50,24 +44,39 @@ async function startImperio() {
         const { connection, lastDisconnect } = update
 
         if (connection === 'open') {
-            console.log("✅ CONECTADO CON ÉXITO: Imperio MP V2000 está en línea.")
+            console.log("\n✅ [CONECTADO CON ÉXITO]");
             
-            // Lógica de envío de video (Argumentos desde Python)
+            // --- 🔍 ESCÁNER DE CANALES (NEWSLETTERS) ---
+            try {
+                // Esto buscará todos los canales donde eres admin o seguidor
+                const newsletters = await sock.newsletterQueryResult()
+                console.log("-------------------------------------------")
+                console.log("📋 CANALES DETECTADOS (Copia el ID exacto):")
+                newsletters.forEach(n => {
+                    console.log(`📌 NOMBRE: ${n.name} | ID: ${n.id}`);
+                });
+                console.log("-------------------------------------------\n")
+            } catch (e) {
+                console.log("⚠️ No se pudieron listar los canales automáticamente.");
+            }
+
+            // --- 🎬 LÓGICA DE ENVÍO DE VIDEO ---
             const videoPath = process.argv[2]
             const targetChat = process.argv[3]
 
             if (videoPath && targetChat && videoPath !== 'VINCULAR') {
                 try {
+                    console.log(`🚀 Intentando publicar en: ${targetChat}...`)
                     await sock.sendMessage(targetChat, { 
                         video: { url: videoPath }, 
-                        caption: "🔥 *MALLY SERIES* - Contenido Imperial 😈",
+                        caption: "🔥 *MALLY SERIES* 😈",
                         mimetype: 'video/mp4'
                     })
-                    console.log("🎬 VIDEO_ENVIADO")
-                    await delay(3000)
+                    console.log("✅ ¡VIDEO PUBLICADO CON ÉXITO!")
+                    await delay(2000)
                     process.exit(0)
                 } catch (err) {
-                    console.log(`❌ ERROR_ENVIO: ${err.message}`)
+                    console.log(`❌ ERROR DE ENVÍO: ${err.message}`)
                     process.exit(1)
                 }
             }
@@ -75,25 +84,17 @@ async function startImperio() {
 
         if (connection === 'close') {
             const statusCode = (lastDisconnect.error instanceof Boom)?.output?.statusCode
-            const shouldReconnect = statusCode !== DisconnectReason.loggedOut
-
-            console.log(`📡 Conexión cerrada. Razón: ${statusCode}. Reconectando: ${shouldReconnect}`)
-
-            if (shouldReconnect) {
+            if (statusCode !== DisconnectReason.loggedOut) {
                 startImperio()
             } else {
-                console.log("🚫 Sesión cerrada permanentemente. Limpiando datos...")
-                if (fs.existsSync(authPath)) fs.rmSync(authPath, { recursive: true })
+                console.log("🚫 Sesión cerrada. Borrando 'auth' y reiniciando...")
+                fs.rmSync(authPath, { recursive: true, force: true })
                 process.exit(1)
             }
         }
     })
 
-    // Guardar credenciales automáticamente
     sock.ev.on('creds.update', saveCreds)
 }
 
-// Ejecutar el motor con manejo de errores global
-startImperio().catch(err => {
-    console.error("💥 Error fatal en el motor:", err)
-})
+startImperio().catch(err => console.error("Fallo crítico:", err))
