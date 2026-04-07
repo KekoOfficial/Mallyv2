@@ -1,26 +1,24 @@
-# --- 👑 CONFIGURACIÓN IMPERIO MP ---
+# --- 🛡️ CONFIGURACIÓN PRIVADA IMPERIO MP ---
 
-# 🤖 TELEGRAM CONFIG
-# Consigue tu token con @BotFather
-TELEGRAM_TOKEN = "TU_BOT_TOKEN_AQUÍ"
+# 🤖 TELEGRAM BOT TOKEN
+# El token que te dio @BotFather para el bot receptor
+TELEGRAM_TOKEN = "TU_BOT_TOKEN_AQUI" 
 
-# 📲 WHATSAPP CONFIG
-# El ID del grupo (Canal) termina en @g.us
-# Tip: Puedes obtenerlo con un script de logs o reenviando un mensaje al bot de WA
-WHATSAPP_ID = "1234567890-1234567890@g.us" 
-# Tu número con el que te vas a vincular (Formato internacional)
-MY_NUMBER = "595XXXXXXXXX" 
+# 📲 WHATSAPP DESTINO (CANAL/GRUPO)
+# El ID del grupo donde quieres que se publique el video principal
+# Formato: 1234567890-1234567890@g.us
+WHATSAPP_ID = "ID_DEL_CANAL_WHATSAPP@g.us"
 
-# 🎬 VIDEO SETTINGS (MALLY SERIES)
-# Tiempo máximo del clip (en segundos)
-MAX_DURATION = 180  # 3 minutos como pediste para eficiencia
-CAPTION_TEXT = "🔥 *MALLY SERIES* - Contenido Nuevo 😈"
+# 📱 TU NÚMERO PRIVADO
+# Solo para la vinculación inicial por Pairing Code en Termux
+# Formato: 5959XXXXXXXX (Sin el +)
+MY_NUMBER = "5959XXXXXXXX"
 
-# 📂 RUTAS DEL SISTEMA
+# 🎬 MALLY SERIES SETTINGS
+MAX_DURATION = 180  # 3 minutos (Eficiencia Galería)
+CAPTION_TEXT = "🔥 *MALLY SERIES* - Nuevo Contenido 😈"
+
+# 📂 BASE DE DATOS Y RUTAS
 BASE_DIR = "media"
 VIDEO_TEMP = f"{BASE_DIR}/videos"
-HISTORY_DB = f"{BASE_DIR}/history.json"
-
-# ⚙️ MODO DEBUG
-# Cambia a False para que no ensucie la pantalla de Termux
-DEBUG = True
+HISTORY_DB = f"{BASE_DIR}/history.json" # Aquí se guarda lo "Ya enviado"
